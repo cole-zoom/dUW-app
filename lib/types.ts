@@ -5,14 +5,77 @@
  */
 export interface Stock {
   id: string
-  name: string
+  portfolio_id: string
+  ticker: string  // Changed from 'name' to 'ticker' to match backend
+  shares: number 
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Represents a collection of stocks.
+ */
+export interface Portfolio {
+  id: string
+  user_id: string  // Added to match backend
+  name: string     // Changed from 'title' to 'name' to match backend
+  stocks: Stock[]
+  created_at: string 
+  updated_at: string 
+}
+
+/**
+ * Request body for creating a new portfolio.
+ */
+export interface CreatePortfolioRequest {
+  name: string  // Changed from 'title' to 'name'
+}
+
+/**
+ * Request body for adding a stock to a portfolio.
+ */
+export interface CreateStockRequest {
+  ticker: string  // Changed from 'name' to 'ticker'
   shares: number
 }
 
-export interface Portfolio {
-  id: string
-  title: string
-  stocks: Stock[]
+/**
+ * Request body for updating a stock.
+ */
+export interface UpdateStockRequest {
+  ticker?: string
+  shares?: number
+}
+
+/**
+ * Request body for moving a stock between portfolios.
+ */
+export interface MoveStockRequest {
+  to_portfolio_id: string
+}
+
+/**
+ * Request body for updating a portfolio.
+ */
+export interface UpdatePortfolioRequest {
+  name: string
+}
+
+/**
+ * Standard API response wrapper.
+ */
+export interface APIResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+}
+
+/**
+ * Error response wrapper.
+ */
+export interface ErrorResponse {
+  success: boolean
+  error: string
 }
 
 /**
@@ -25,7 +88,7 @@ export type CopiedStock = {
   
   // --- Prop Types for Function Handlers ---
   
-  export type AddStockHandler = (portfolioId: string, stock: Omit<Stock, "id">) => void;
+  export type AddStockHandler = (portfolioId: string, stock: Omit<Stock, "id" | "portfolio_id" | "created_at" | "updated_at">) => void;
   export type DeleteStockHandler = (portfolioId: string, stockId: string) => void;
   export type MoveStockHandler = (fromPortfolioId: string, toPortfolioId: string, stock: Stock) => void;
   export type PasteStockHandler = (portfolioId: string) => void;

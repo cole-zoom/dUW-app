@@ -2,6 +2,7 @@ import "@/styles/globals.css"
 import { Inter } from "next/font/google"
 import type React from "react"
 import { ThemeProvider } from "@/components/Theme/theme-provider"
+import { AuthProvider } from "@/lib/AuthContext"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Metadata } from "next"
 
@@ -16,12 +17,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="min-h-screen bg-background">
-            <div className="grid lg:grid-cols-[280px_1fr]">
-              <Sidebar />
-              <main>{children}</main>
+          <AuthProvider>
+            <div className="min-h-screen bg-background">
+              <div className="grid lg:grid-cols-[280px_1fr]">
+                <Sidebar />
+                <main>{children}</main>
+              </div>
             </div>
-          </div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

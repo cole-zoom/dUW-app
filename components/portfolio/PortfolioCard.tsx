@@ -13,9 +13,9 @@ import { Stock } from "@/lib/types"
 
 interface PortfolioCardProps {
   id: string
-  title: string
+  name: string
   stocks: Stock[]
-  onAddStock: (portfolioId: string, stock: Omit<Stock, "id">) => void
+  onAddStock: (portfolioId: string, stock: Omit<Stock, "id" | "portfolio_id" | "created_at" | "updated_at">) => void
   onDeleteStock: (portfolioId: string, stockId: string) => void
   onDeletePortfolio: (portfolioId: string) => void
   onPasteStock: (portfolioId: string) => void
@@ -26,7 +26,7 @@ interface PortfolioCardProps {
 
 export function PortfolioCard({
   id,
-  title,
+  name,
   stocks,
   onAddStock,
   onDeleteStock,
@@ -41,7 +41,7 @@ export function PortfolioCard({
   const [isHovered, setIsHovered] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
-  const handleAddStock = (stock: Omit<Stock, "id">) => {
+  const handleAddStock = (stock: { ticker: string; shares: number }) => {
     onAddStock(id, stock)
     setIsAddDialogOpen(false)
   }
@@ -71,7 +71,7 @@ export function PortfolioCard({
       if (sourcePortfolioId === id) return
 
       // Check if stock already exists in target portfolio
-      const stockExists = stocks.some((s) => s.name === stock.name)
+      const stockExists = stocks.some((s) => s.ticker === stock.ticker)
       if (stockExists) return
 
       onMoveStock(sourcePortfolioId, id, stock)
@@ -123,7 +123,7 @@ export function PortfolioCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+        <CardTitle className="text-lg font-semibold">{name}</CardTitle>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">

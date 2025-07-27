@@ -4,52 +4,52 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    /* Light Mode Palette */
+    --background: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --foreground: 213 11% 13%; /* #1E2125 - Deep Night Blue-Gray */
+    --card: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --card-foreground: 213 11% 13%; /* #1E2125 - Deep Night Blue-Gray */
+    --popover: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --popover-foreground: 213 11% 13%; /* #1E2125 - Deep Night Blue-Gray */
+    --primary: 205 33% 74%; /* #A7C2D5 - Muted Blue-Gray */
+    --primary-foreground: 213 11% 13%; /* #1E2125 - Deep Night Blue-Gray */
+    --secondary: 120 28% 76%; /* #B2D1B2 - Soft Sage Green */
+    --secondary-foreground: 213 11% 13%; /* #1E2125 - Deep Night Blue-Gray */
+    --muted: 141 14% 48%; /* #E8F6ED - Very Pale Mint Green */
+    --muted-foreground: 141 14% 48%; /* #6B8B7A - Deep Forest Green */
+    --accent: 120 28% 76%; /* #B2D1B2 - Soft Sage Green */
+    --accent-foreground: 213 11% 13%; /* #1E2125 - Deep Night Blue-Gray */
+    --destructive: 0 84% 60%; /* #ef4444 - Vivid Red */
+    --destructive-foreground: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --border: 213 11% 13%; /* #E0E5EA - Slightly Cooler Off-White/Light Gray */
+    --input: 210 23% 90%; /* #E0E5EA - Slightly Cooler Off-White/Light Gray */
+    --ring: 205 33% 74%; /* #A7C2D5 - Muted Blue-Gray */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    /* Dark Mode Palette */
+    --background: 213 11% 13%; /* #1E2125 - Deep Night Blue-Gray */
+    --foreground: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --card: 213 11% 13%; /* #3C434C - Shadow Gray */
+    --card-foreground: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --popover: 213 11% 13%; /* #3C434C - Shadow Gray */
+    --popover-foreground: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --primary: 206 33% 62%; /* #7FA2BF - Muted Ocean Blue */
+    --primary-foreground: 213 11% 13%; /* #1E2125 - Deep Night Blue-Gray */
+    --secondary: 141 14% 48%; /* #6B8B7A - Deep Forest Green */
+    --secondary-foreground: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --muted: 214 11% 27%; /* #3C434C - Shadow Gray */
+    --muted-foreground: 131 16% 72%; /* #A3BCA7 - Subtle Moss */
+    --accent: 141 14% 48%; /* #6B8B7A - Deep Forest Green */
+    --accent-foreground: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --destructive: 0 79% 42%; /* #b91c1c - Dark Red */
+    --destructive-foreground: 40 25% 97%; /* #FAF9F6 - Soft Off-White */
+    --border: 214 11% 27%; /* #3C434C - Shadow Gray */
+    --input: 214 11% 27%; /* #3C434C - Shadow Gray */
+    --ring: 206 33% 62%; /* #7FA2BF - Muted Ocean Blue */
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
