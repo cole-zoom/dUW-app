@@ -89,7 +89,7 @@ export function StockCard({ stock, onDelete, portfolioId }: StockCardProps) {
       <CardContent className="p-3">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h4 className="font-medium">{stock.name}</h4>
+            <h4 className="font-medium">{stock.ticker}</h4>
             <p className="text-sm text-muted-foreground">{stock.shares} shares</p>
           </div>
           <div className="flex gap-1">

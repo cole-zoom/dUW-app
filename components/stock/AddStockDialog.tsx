@@ -18,28 +18,28 @@ import { Label } from "@/components/ui/label"
 interface AddStockDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAddStock: (stock: { name: string; shares: number }) => void
+  onAddStock: (stock: { ticker: string; shares: number }) => void
 }
 
 export function AddStockDialog({ open, onOpenChange, onAddStock }: AddStockDialogProps) {
-  const [name, setName] = useState("")
+  const [ticker, setTicker] = useState("")
   const [shares, setShares] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (name.trim() && shares.trim() && !isNaN(Number(shares))) {
+    if (ticker.trim() && shares.trim() && !isNaN(Number(shares))) {
       onAddStock({
-        name: name.trim(),
+        ticker: ticker.trim(),
         shares: Number(shares),
       })
-      setName("")
+      setTicker("")
       setShares("")
       onOpenChange(false)
     }
   }
 
   const handleClose = () => {
-    setName("")
+    setTicker("")
     setShares("")
     onOpenChange(false)
   }
@@ -50,19 +50,19 @@ export function AddStockDialog({ open, onOpenChange, onAddStock }: AddStockDialo
         <DialogHeader>
           <DialogTitle>Add Stock</DialogTitle>
           <DialogDescription>
-            Enter the stock name and number of shares you want to add to this portfolio.
+            Enter the stock ticker and number of shares you want to add to this portfolio.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Stock Name
+              <Label htmlFor="ticker" className="text-right">
+                Stock Ticker
               </Label>
               <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                id="ticker"
+                value={ticker}
+                onChange={(e) => setTicker(e.target.value)}
                 className="col-span-3"
                 placeholder="e.g., AAPL, TSLA"
                 required
@@ -78,8 +78,9 @@ export function AddStockDialog({ open, onOpenChange, onAddStock }: AddStockDialo
                 value={shares}
                 onChange={(e) => setShares(e.target.value)}
                 className="col-span-3"
-                placeholder="e.g., 100"
-                min="1"
+                placeholder="0"
+                min="0"
+                step="0.01"
                 required
               />
             </div>
