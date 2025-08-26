@@ -10,9 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cole-zoom/dUW-app/api/internal/clients"
 	"github.com/cole-zoom/dUW-app/api/internal/handlers"
 	"github.com/cole-zoom/dUW-app/api/internal/middleware"
+	"github.com/cole-zoom/dUW-app/api/internal/services"
 	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
 )
 
 /*
@@ -21,6 +24,14 @@ Main backend function for dUW-app.
 This also serves as a tutorial for me so ignore useless comments.
 */
 func main() {
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: Could not load .env file: %v", err)
+		log.Println("Continuing with system environment variables...")
+	} else {
+		log.Println("Successfully loaded .env file")
+	}
+
 	// Get database connection string from environment
 	connStr := os.Getenv("NEON_DEV_PASS")
 	if connStr == "" {
@@ -33,6 +44,14 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	// Validate Polygon API key
+	polygonAPIKey := os.Getenv("POLYGON_API_KEY")
+	if polygonAPIKey == "" {
+		fmt.Fprintln(os.Stderr, "POLYGON_API_KEY environment variable not set")
+		os.Exit(1)
+	}
+	log.Printf("Polygon API key loaded: %s...", polygonAPIKey[:8])
 
 	// Create database connection
 	var ctx context.Context = context.Background()
@@ -63,6 +82,12 @@ func main() {
 	// Initialize handlers with database connection
 	portfolioHandler := handlers.NewPortfolioHandler(conn)
 	stockHandler := handlers.NewStockHandler(conn)
+	securitiesHandler := handlers.NewSecuritiesHandler(conn)
+
+	// Initialize polygon API integration
+	polygonClient := clients.NewPolygonClient(polygonAPIKey)
+	polygonStockService := services.NewStockService(polygonClient)
+	polygonStockHandler := handlers.NewStockAPIHandler(polygonStockService)
 
 	// Register routes
 	mux.HandleFunc("GET /api/health", healthHandler)
@@ -79,6 +104,11 @@ func main() {
 	mux.HandleFunc("PUT /api/portfolios/{portfolioID}/stocks/{stockID}", stockHandler.UpdateStock)
 	mux.HandleFunc("DELETE /api/portfolios/{portfolioID}/stocks/{stockID}", stockHandler.DeleteStock)
 	mux.HandleFunc("PATCH /api/portfolios/{portfolioID}/stocks/{stockID}/move", stockHandler.MoveStock)
+	mux.HandleFunc("GET /api/stocks/suggestions", polygonStockHandler.GetSuggestedStocks)
+
+	// Securities routes
+	mux.HandleFunc("GET /api/securities/trie", securitiesHandler.GetSecuritiesTrie)
+	mux.HandleFunc("GET /api/securities/search", securitiesHandler.SearchSecurities)
 
 	// Create server with configurable port
 	var server *http.Server = &http.Server{
