@@ -3,6 +3,7 @@ import { Inter } from "next/font/google"
 import type React from "react"
 import { ThemeProvider } from "@/components/Theme/theme-provider"
 import { AuthProvider } from "@/lib/AuthContext"
+import { SecuritiesProvider } from "@/lib/SecuritiesContext"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Metadata } from "next"
 
@@ -18,12 +19,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <div className="min-h-screen bg-background">
-              <div className="grid lg:grid-cols-[280px_1fr]">
-                <Sidebar />
-                <main>{children}</main>
+            <SecuritiesProvider>
+              <div className="min-h-screen bg-background">
+                <div className="grid lg:grid-cols-[280px_1fr]">
+                  <Sidebar />
+                  <main>{children}</main>
+                </div>
               </div>
-            </div>
+            </SecuritiesProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

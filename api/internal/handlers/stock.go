@@ -10,15 +10,16 @@ import (
 	"github.com/cole-zoom/dUW-app/api/internal/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// StockHandler to hold db connection
+// StockHandler to hold db connection pool
 type StockHandler struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-// Creates a new stock handler with database connection
-func NewStockHandler(db *pgx.Conn) *StockHandler {
+// Creates a new stock handler with database connection pool
+func NewStockHandler(db *pgxpool.Pool) *StockHandler {
 	return &StockHandler{
 		db: db,
 	}
@@ -50,6 +51,7 @@ func (h *StockHandler) GetStocks(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.db.Query(ctx, query, portfolioID, userID)
 
 	if err != nil {
+		log.Printf("GetStocks - Database query failed for portfolioID %s, userID %s: %v", portfolioID, userID, err)
 		h.sendErrorResponse(w, "Failed to fetch stocks", http.StatusInternalServerError)
 		return
 	}
@@ -57,6 +59,7 @@ func (h *StockHandler) GetStocks(w http.ResponseWriter, r *http.Request) {
 
 	stocks, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.Stock])
 	if err != nil {
+		log.Printf("GetStocks - Failed to scan stock data for portfolioID %s, userID %s: %v", portfolioID, userID, err)
 		h.sendErrorResponse(w, "Failed to scan stock data", http.StatusInternalServerError)
 		return
 	}
@@ -85,8 +88,9 @@ func (h *StockHandler) CreateStock(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID, ok := ctx.Value("userID").(string)
 
-	log.Println(userID)
+	log.Printf("CreateStock - Starting request for userID: %s", userID)
 	if !ok {
+		log.Printf("CreateStock - Unauthorized: userID not found in context")
 		h.sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -95,11 +99,15 @@ func (h *StockHandler) CreateStock(w http.ResponseWriter, r *http.Request) {
 
 	var req models.CreateStockRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("CreateStock - Invalid JSON body for userID %s: %v", userID, err)
 		h.sendErrorResponse(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("CreateStock - Request decoded for userID %s, portfolioID %s: ticker='%s', shares=%f", userID, portfolioID, req.Ticker, req.Shares)
+
 	if req.Ticker == "" || req.Shares <= 0 {
+		log.Printf("CreateStock - Invalid data for userID %s: ticker='%s', shares=%f", userID, req.Ticker, req.Shares)
 		h.sendErrorResponse(w, "Ticker and positive shares are required", http.StatusBadRequest)
 		return
 	}
@@ -118,19 +126,31 @@ func (h *StockHandler) CreateStock(w http.ResponseWriter, r *http.Request) {
         )
         RETURNING id, portfolio_id, ticker, shares, created_at, updated_at
     `
+	log.Printf("CreateStock - Attempting to insert stock ticker='%s', shares=%f for portfolioID='%s', userID='%s'", req.Ticker, req.Shares, portfolioID, userID)
+
 	err := h.db.QueryRow(ctx, query, portfolioID, userID, req.Ticker, req.Shares).Scan(
 		&stock.ID, &stock.PortfolioID, &stock.Ticker, &stock.Shares, &stock.CreatedAt, &stock.UpdatedAt,
 	)
 
 	if err != nil {
+		log.Printf("CreateStock - Database insert failed for userID %s, portfolioID %s, ticker='%s': %v", userID, portfolioID, req.Ticker, err)
+
 		// Check for a foreign key violation, which now doubles as our auth check.
-		if pgxErr, ok := err.(*pgconn.PgError); ok && pgxErr.Code == "23503" {
-			h.sendErrorResponse(w, "Portfolio not found or access denied", http.StatusNotFound)
-			return
+		if pgxErr, ok := err.(*pgconn.PgError); ok {
+			log.Printf("CreateStock - PostgreSQL error details: Code=%s, Message=%s, Detail=%s, Hint=%s",
+				pgxErr.Code, pgxErr.Message, pgxErr.Detail, pgxErr.Hint)
+
+			if pgxErr.Code == "23503" {
+				h.sendErrorResponse(w, "Portfolio not found or access denied", http.StatusNotFound)
+				return
+			}
 		}
+
 		h.sendErrorResponse(w, "Failed to create stock", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("CreateStock - Successfully created stock ID=%s for portfolioID=%s, userID=%s", stock.ID, portfolioID, userID)
 
 	response := models.APIResponse{Success: true, Data: stock}
 	w.Header().Set("Content-Type", "application/json")

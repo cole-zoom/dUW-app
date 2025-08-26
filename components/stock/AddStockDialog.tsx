@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { SecuritiesSearch } from "./SecuritiesSearch"
+import { useSecurities } from "@/lib/SecuritiesContext"
+import type { Securities } from "@/lib/types"
 
 interface AddStockDialogProps {
   open: boolean
@@ -24,6 +27,38 @@ interface AddStockDialogProps {
 export function AddStockDialog({ open, onOpenChange, onAddStock }: AddStockDialogProps) {
   const [ticker, setTicker] = useState("")
   const [shares, setShares] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<Securities[]>([])
+  const { 
+    searchSecurities, 
+    loading: securitiesLoading,
+    initialized,
+    error: securitiesError
+  } = useSecurities()
+
+  // Log securities context state for debugging
+  useEffect(() => {
+    console.log('[AddStockDialog] Securities context state:', {
+      initialized,
+      loading: securitiesLoading,
+      error: securitiesError,
+      dialogOpen: open
+    })
+  }, [initialized, securitiesLoading, securitiesError, open])
+
+  // Handle search
+  const handleSearch = (query: string) => {
+    console.log('[AddStockDialog] Handling search for query:', query)
+    setSearchQuery(query)
+    const results = searchSecurities(query)
+    console.log('[AddStockDialog] Search results:', results.length, 'securities found')
+    setSearchResults(results)
+  }
+
+  // Handle ticker selection
+  const handleTickerSelect = (selectedTicker: string) => {
+    setTicker(selectedTicker)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,6 +69,8 @@ export function AddStockDialog({ open, onOpenChange, onAddStock }: AddStockDialo
       })
       setTicker("")
       setShares("")
+      setSearchQuery("")
+      setSearchResults([])
       onOpenChange(false)
     }
   }
@@ -41,6 +78,8 @@ export function AddStockDialog({ open, onOpenChange, onAddStock }: AddStockDialo
   const handleClose = () => {
     setTicker("")
     setShares("")
+    setSearchQuery("")
+    setSearchResults([])
     onOpenChange(false)
   }
 
@@ -59,14 +98,17 @@ export function AddStockDialog({ open, onOpenChange, onAddStock }: AddStockDialo
               <Label htmlFor="ticker" className="text-right">
                 Stock Ticker
               </Label>
-              <Input
-                id="ticker"
-                value={ticker}
-                onChange={(e) => setTicker(e.target.value)}
-                className="col-span-3"
-                placeholder="e.g., AAPL, TSLA"
-                required
-              />
+              <div className="col-span-3">
+                <SecuritiesSearch
+                  onSelect={handleTickerSelect}
+                  onSearch={handleSearch}
+                  searchResults={searchResults}
+                  loading={securitiesLoading}
+                  value={ticker}
+                  placeholder="e.g., AAPL, TSLA"
+                  className=""
+                />
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="shares" className="text-right">
