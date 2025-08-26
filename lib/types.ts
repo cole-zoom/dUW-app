@@ -62,6 +62,47 @@ export interface UpdatePortfolioRequest {
 }
 
 /**
+ * Represents a security/stock from the securities database.
+ */
+export interface Securities {
+  ticker: string
+  name: string
+  market?: string
+  locale?: string
+  primary_exchange?: string
+  type?: string
+  active: boolean
+  currency_name?: string
+  cik?: string
+  composite_figi?: string
+  share_class_figi?: string
+  last_updated_utc?: string
+}
+
+/**
+ * Represents a node in the securities trie structure.
+ */
+export interface TrieNode {
+  children?: { [key: string]: TrieNode }
+  securities?: Securities[]
+  is_end: boolean
+}
+
+/**
+ * Represents the response from the securities trie API.
+ * This matches the CompressedTrieResponse from the Go backend.
+ */
+export interface SecuritiesTrieResponse {
+  trie: {
+    root: TrieNode
+    size: number
+  }
+  count: number
+  version: string
+  build_time: string
+}
+
+/**
  * Standard API response wrapper.
  */
 export interface APIResponse<T = any> {

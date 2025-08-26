@@ -6,7 +6,7 @@
 
 // For now, we use a hard-coded user ID
 // In the future, this will come from authentication
-const CURRENT_USER_ID = "c62292e5-9005-4ce0-8b9d-7953bcef9890"
+const CURRENT_USER_ID = "6fa7321b-7290-46ae-836d-a83e988d0960"
 
 /**
  * Get the current user ID.
@@ -33,6 +33,9 @@ export async function authenticatedFetch(
   url: string, 
   options: RequestInit = {}
 ): Promise<Response> {
+  console.log('[Auth] Making authenticated fetch to:', url)
+  console.log('[Auth] Current window.location.origin:', window.location.origin)
+  
   const authHeaders = getAuthHeaders()
   
   return fetch(url, {

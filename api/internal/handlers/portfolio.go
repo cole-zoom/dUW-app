@@ -9,15 +9,17 @@ import (
 
 	"github.com/cole-zoom/dUW-app/api/internal/models"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// PortfolioHandler to hold db connection
+// PortfolioHandler to hold db connection pool
 type PortfolioHandler struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-// Creates a new portfolio handler with database connection
-func NewPortfolioHandler(db *pgx.Conn) *PortfolioHandler {
+// Creates a new portfolio handler with database connection pool
+func NewPortfolioHandler(db *pgxpool.Pool) *PortfolioHandler {
 	return &PortfolioHandler{
 		db: db,
 	}
@@ -68,6 +70,7 @@ func (h *PortfolioHandler) GetPortfolios(w http.ResponseWriter, r *http.Request)
 	rows, err := h.db.Query(ctx, query, userID)
 
 	if err != nil {
+		log.Printf("GetPortfolios - Database query failed for userID %s: %v", userID, err)
 		h.sendErrorResponse(w, "Failed to fetch portfolios", http.StatusInternalServerError)
 		return
 	}
@@ -81,11 +84,13 @@ func (h *PortfolioHandler) GetPortfolios(w http.ResponseWriter, r *http.Request)
 		var stocksJSON []byte
 
 		if err := rows.Scan(&p.ID, &p.Name, &p.UserID, &p.CreatedAt, &p.UpdatedAt, &stocksJSON); err != nil {
+			log.Printf("GetPortfolios - Failed to scan portfolio row for userID %s: %v", userID, err)
 			h.sendErrorResponse(w, "Failed to scan portfolio data", http.StatusInternalServerError)
 			return
 		}
 
 		if err := json.Unmarshal(stocksJSON, &p.Stocks); err != nil {
+			log.Printf("GetPortfolios - Failed to unmarshal stocks JSON for portfolio %s, userID %s: %v", p.ID, userID, err)
 			h.sendErrorResponse(w, "Failed to unmarshal stocks", http.StatusInternalServerError)
 			return
 		}
@@ -113,9 +118,10 @@ func (h *PortfolioHandler) CreatePortfolio(w http.ResponseWriter, r *http.Reques
 	// Get userID from context
 	userID, ok := ctx.Value("userID").(string)
 
-	log.Println(userID)
+	log.Printf("CreatePortfolio - Starting request for userID: %s", userID)
 
 	if !ok {
+		log.Printf("CreatePortfolio - Unauthorized: userID not found in context")
 		h.sendErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -124,12 +130,16 @@ func (h *PortfolioHandler) CreatePortfolio(w http.ResponseWriter, r *http.Reques
 
 	// Decode JSON body
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("CreatePortfolio - Invalid JSON body for userID %s: %v", userID, err)
 		h.sendErrorResponse(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("CreatePortfolio - Request decoded for userID %s: portfolio name='%s'", userID, req.Name)
+
 	// Basic validation
 	if req.Name == "" {
+		log.Printf("CreatePortfolio - Empty portfolio name provided for userID %s", userID)
 		h.sendErrorResponse(w, "Name is required", http.StatusBadRequest)
 		return
 	}
@@ -137,6 +147,8 @@ func (h *PortfolioHandler) CreatePortfolio(w http.ResponseWriter, r *http.Reques
 	var portfolio models.Portfolio
 
 	// Insert into database
+	log.Printf("CreatePortfolio - Attempting to insert portfolio with name='%s' for userID='%s'", req.Name, userID)
+
 	err := h.db.QueryRow(ctx, `
 		INSERT INTO portfolios (name, user_id)
 		VALUES ($1, $2)
@@ -144,9 +156,19 @@ func (h *PortfolioHandler) CreatePortfolio(w http.ResponseWriter, r *http.Reques
 	`, req.Name, userID).Scan(&portfolio.ID, &portfolio.Name, &portfolio.UserID, &portfolio.CreatedAt, &portfolio.UpdatedAt)
 
 	if err != nil {
+		log.Printf("CreatePortfolio - Database insert failed for userID %s, portfolio name='%s': %v", userID, req.Name, err)
+
+		// Check for specific database errors
+		if pgxErr, ok := err.(*pgconn.PgError); ok {
+			log.Printf("CreatePortfolio - PostgreSQL error details: Code=%s, Message=%s, Detail=%s, Hint=%s",
+				pgxErr.Code, pgxErr.Message, pgxErr.Detail, pgxErr.Hint)
+		}
+
 		h.sendErrorResponse(w, "Failed to create portfolio", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("CreatePortfolio - Successfully created portfolio ID=%s for userID=%s", portfolio.ID, userID)
 
 	// Initialize empty stocks array
 	portfolio.Stocks = []models.Stock{}
@@ -251,6 +273,7 @@ func (h *PortfolioHandler) DeletePortfolio(w http.ResponseWriter, r *http.Reques
 	var portfolioCount int
 	err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM portfolios WHERE user_id = $1", userID).Scan(&portfolioCount)
 	if err != nil {
+		log.Printf("DeletePortfolio - Failed to check portfolio count for userID %s: %v", userID, err)
 		h.sendErrorResponse(w, "Failed to check portfolio count", http.StatusInternalServerError)
 		return
 	}

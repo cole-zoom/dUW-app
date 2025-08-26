@@ -14,7 +14,7 @@ import (
 	"github.com/cole-zoom/dUW-app/api/internal/handlers"
 	"github.com/cole-zoom/dUW-app/api/internal/middleware"
 	"github.com/cole-zoom/dUW-app/api/internal/services"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
@@ -53,23 +53,23 @@ func main() {
 	}
 	log.Printf("Polygon API key loaded: %s...", polygonAPIKey[:8])
 
-	// Create database connection
+	// Create database connection pool
 	var ctx context.Context = context.Background()
-	var conn *pgx.Conn
+	var pool *pgxpool.Pool
 	var err error
 
-	conn, err = pgx.Connect(ctx, connStr)
+	pool, err = pgxpool.New(ctx, connStr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close(ctx)
+	defer pool.Close()
 
-	log.Println("Successfully connected to Neon database")
+	log.Println("Successfully created database connection pool")
 
 	// Test the connection
 	var greeting string
-	err = conn.QueryRow(ctx, "SELECT 'Hello from Neon!'").Scan(&greeting)
+	err = pool.QueryRow(ctx, "SELECT 'Hello from Neon!'").Scan(&greeting)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		os.Exit(1)
@@ -79,10 +79,10 @@ func main() {
 	// Create a new HTTP router
 	var mux *http.ServeMux = http.NewServeMux()
 
-	// Initialize handlers with database connection
-	portfolioHandler := handlers.NewPortfolioHandler(conn)
-	stockHandler := handlers.NewStockHandler(conn)
-	securitiesHandler := handlers.NewSecuritiesHandler(conn)
+	// Initialize handlers with database connection pool
+	portfolioHandler := handlers.NewPortfolioHandler(pool)
+	stockHandler := handlers.NewStockHandler(pool)
+	securitiesHandler := handlers.NewSecuritiesHandler(pool)
 
 	// Initialize polygon API integration
 	polygonClient := clients.NewPolygonClient(polygonAPIKey)

@@ -10,16 +10,16 @@ import (
 	"time"
 
 	"github.com/cole-zoom/dUW-app/api/internal/models"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // SecuritiesHandler handles all securities-related HTTP requests
 type SecuritiesHandler struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-// NewSecuritiesHandler creates a new securities handler with database connection
-func NewSecuritiesHandler(db *pgx.Conn) *SecuritiesHandler {
+// NewSecuritiesHandler creates a new securities handler with database connection pool
+func NewSecuritiesHandler(db *pgxpool.Pool) *SecuritiesHandler {
 	return &SecuritiesHandler{
 		db: db,
 	}
