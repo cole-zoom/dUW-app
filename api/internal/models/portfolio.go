@@ -22,6 +22,14 @@ type Portfolio struct {
 	Stocks    []Stock   `json:"stocks"`
 }
 
+type DisplayStock struct {
+	Ticker          string  `json:"ticker"`
+	Name            string  `json:"name"`
+	Shares          float64 `json:"shares"`
+	PrimaryExchange string  `json:"primary_exchange"`
+	CurrencyName    string  `json:"currency_name"`
+}
+
 // CreatePortfolioRequest model
 type CreatePortfolioRequest struct {
 	Name string `json:"name" validate:"required,min=1,max=100"`

@@ -5,6 +5,14 @@
 
 set -e  # Exit on any error
 
+# Check if running as root
+if [[ $EUID -eq 0 ]]; then
+   echo "❌ Error: This script should not be run as root (with sudo)"
+   echo "   Homebrew and other tools require running as a regular user"
+   echo "   Please run: ./setup.sh (without sudo)"
+   exit 1
+fi
+
 echo "🚀 Setting up Crypto Dashboard Development Environment"
 echo "======================================================"
 
@@ -62,8 +70,17 @@ if [[ "$MACHINE" == "Mac" ]]; then
         # Add Homebrew to PATH for this session
         if [[ -f "/opt/homebrew/bin/brew" ]]; then
             export PATH="/opt/homebrew/bin:$PATH"
+            eval "$(/opt/homebrew/bin/brew shellenv)"
         elif [[ -f "/usr/local/bin/brew" ]]; then
             export PATH="/usr/local/bin:$PATH"
+            eval "$(/usr/local/bin/brew shellenv)"
+        fi
+        
+        # Verify Homebrew is now accessible
+        if ! command_exists brew; then
+            print_error "Homebrew installation completed but brew command not found in PATH"
+            print_status "Please restart your terminal or run: source ~/.zshrc (or ~/.bashrc)"
+            exit 1
         fi
     else
         print_success "Homebrew already installed"
