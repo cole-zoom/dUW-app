@@ -17,6 +17,7 @@ interface PortfolioCardProps {
   stocks: Stock[]
   onAddStock: (portfolioId: string, stock: Omit<Stock, "id" | "portfolio_id" | "created_at" | "updated_at">) => void
   onDeleteStock: (portfolioId: string, stockId: string) => void
+  onUpdateStock: (portfolioId: string, stockId: string, data: { shares: number }) => Promise<void>
   onDeletePortfolio: (portfolioId: string) => void
   onPasteStock: (portfolioId: string) => void
   onMoveStock: (fromPortfolioId: string, toPortfolioId: string, stock: Stock) => void
@@ -30,6 +31,7 @@ export function PortfolioCard({
   stocks,
   onAddStock,
   onDeleteStock,
+  onUpdateStock,
   onDeletePortfolio,
   onPasteStock,
   onMoveStock,
@@ -141,7 +143,7 @@ export function PortfolioCard({
       </CardHeader>
       <CardContent className="space-y-3">
         {stocks.map((stock) => (
-          <StockCard key={stock.id} stock={stock} onDelete={() => onDeleteStock(id, stock.id)} portfolioId={id} />
+          <StockCard key={stock.id} stock={stock} onDelete={() => onDeleteStock(id, stock.id)} onUpdateStock={onUpdateStock} portfolioId={id} />
         ))}
         <Button
           variant="outline"

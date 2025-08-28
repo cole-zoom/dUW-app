@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import type { Portfolio, CreatePortfolioRequest, UpdatePortfolioRequest, APIResponse, CopiedStock } from "@/lib/types"
-import { authenticatedFetch } from "@/lib/auth"
+import { useStackAuth } from "./useStackAuth"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
@@ -31,6 +31,7 @@ export function usePortfolioManager() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copiedStock, setCopiedStock] = useState<CopiedStock>(null)
+  const { authenticatedFetch } = useStackAuth()
 
   // Helper function to make authenticated API calls with error handling
   const apiCall = useCallback(async <T>(
@@ -62,7 +63,7 @@ export function usePortfolioManager() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [authenticatedFetch])
 
   // GET /api/portfolios
   const fetchPortfolios = useCallback(async (): Promise<Portfolio[]> => {

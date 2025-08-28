@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -33,9 +34,9 @@ func main() {
 	}
 
 	// Get database connection string from environment
-	connStr := os.Getenv("NEON_DEV_PASS")
+	connStr := os.Getenv("NEON_PASS")
 	if connStr == "" {
-		fmt.Fprintln(os.Stderr, "NEON_DEV_PASS environment variable not set")
+		fmt.Fprintln(os.Stderr, "NEON_PASS environment variable not set")
 		os.Exit(1)
 	}
 
@@ -76,9 +77,6 @@ func main() {
 	}
 	log.Printf("Database says: %s", greeting)
 
-	// Create a new HTTP router
-	var mux *http.ServeMux = http.NewServeMux()
-
 	// Initialize handlers with database connection pool
 	portfolioHandler := handlers.NewPortfolioHandler(pool)
 	stockHandler := handlers.NewStockHandler(pool)
@@ -89,16 +87,20 @@ func main() {
 	polygonStockService := services.NewStockService(polygonClient)
 	polygonStockHandler := handlers.NewStockAPIHandler(polygonStockService)
 
-	// Register routes
+	// All routes will be registered in the main mux with selective auth
+
+	// Create main mux for all routes
+	mux := http.NewServeMux()
+
+	// Register health endpoint directly (will be handled by selective auth)
 	mux.HandleFunc("GET /api/health", healthHandler)
 
-	// Portfolio routes
+	// Register all other API routes
 	mux.HandleFunc("GET /api/portfolios", portfolioHandler.GetPortfolios)
 	mux.HandleFunc("POST /api/portfolios", portfolioHandler.CreatePortfolio)
 	mux.HandleFunc("PUT /api/portfolios/{id}", portfolioHandler.UpdatePortfolio)
 	mux.HandleFunc("DELETE /api/portfolios/{id}", portfolioHandler.DeletePortfolio)
 
-	// Stock routes
 	mux.HandleFunc("GET /api/portfolios/{portfolioID}/stocks", stockHandler.GetStocks)
 	mux.HandleFunc("POST /api/portfolios/{portfolioID}/stocks", stockHandler.CreateStock)
 	mux.HandleFunc("PUT /api/portfolios/{portfolioID}/stocks/{stockID}", stockHandler.UpdateStock)
@@ -106,14 +108,36 @@ func main() {
 	mux.HandleFunc("PATCH /api/portfolios/{portfolioID}/stocks/{stockID}/move", stockHandler.MoveStock)
 	mux.HandleFunc("GET /api/stocks/suggestions", polygonStockHandler.GetSuggestedStocks)
 
-	// Securities routes
 	mux.HandleFunc("GET /api/securities/trie", securitiesHandler.GetSecuritiesTrie)
 	mux.HandleFunc("GET /api/securities/search", securitiesHandler.SearchSecurities)
+
+	// Create selective auth middleware
+	selectiveAuthHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Skip auth for health endpoint
+		if r.URL.Path == "/api/health" && r.Method == "GET" {
+			log.Printf("Health endpoint accessed - skipping auth")
+			mux.ServeHTTP(w, r)
+			return
+		}
+
+		// Apply JWT auth for all other API routes
+		if strings.HasPrefix(r.URL.Path, "/api/") {
+			log.Printf("API endpoint accessed - applying auth: %s", r.URL.Path)
+			middleware.JWTAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mux.ServeHTTP(w, r)
+			})).ServeHTTP(w, r)
+			return
+		}
+
+		// All other routes pass through without auth
+		log.Printf("Non-API endpoint accessed - no auth: %s", r.URL.Path)
+		mux.ServeHTTP(w, r)
+	})
 
 	// Create server with configurable port
 	var server *http.Server = &http.Server{
 		Addr:         ":" + port,
-		Handler:      middleware.CORS(middleware.UserID(mux)),
+		Handler:      middleware.CORS(selectiveAuthHandler),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,

@@ -6,15 +6,17 @@ import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Copy, Trash2 } from "lucide-react"
+import { EditableShares } from "./EditableShares"
 import type { Stock } from "@/lib/types"
 
 interface StockCardProps {
   stock: Stock
   onDelete: () => void
+  onUpdateStock: (portfolioId: string, stockId: string, data: { shares: number }) => Promise<void>
   portfolioId: string
 }
 
-export function StockCard({ stock, onDelete, portfolioId }: StockCardProps) {
+export function StockCard({ stock, onDelete, onUpdateStock, portfolioId }: StockCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -90,7 +92,13 @@ export function StockCard({ stock, onDelete, portfolioId }: StockCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h4 className="font-medium">{stock.ticker}</h4>
-            <p className="text-sm text-muted-foreground">{stock.shares} shares</p>
+            <EditableShares
+              shares={stock.shares}
+              ticker={stock.ticker}
+              portfolioId={portfolioId}
+              stockId={stock.id}
+              onUpdate={onUpdateStock}
+            />
           </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopy}>

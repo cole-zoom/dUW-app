@@ -1,29 +1,74 @@
 /**
- * Authentication utilities for the crypto dashboard.
- * Currently uses a hard-coded user ID, but designed to be easily
- * upgraded to proper authentication in the future.
+ * Authentication utilities for the crypto dashboard using Stack Auth.
  */
 
-// For now, we use a hard-coded user ID
-// In the future, this will come from authentication
-const CURRENT_USER_ID = "6fa7321b-7290-46ae-836d-a83e988d0960"
+import { stackApp } from "./stack-auth"
+
+/**
+ * Get the current user from Stack Auth.
+ */
+export async function getCurrentUser() {
+  if (typeof window === 'undefined') {
+    // Server-side: use Stack Auth server methods
+    const user = await stackApp.getUser()
+    return user
+  } else {
+    // Client-side: This will be handled by the AuthContext
+    return null
+  }
+}
 
 /**
  * Get the current user ID.
- * In the future, this will be retrieved from authentication state/token.
  */
-export function getCurrentUserId(): string {
-  return CURRENT_USER_ID
+export async function getCurrentUserId(): Promise<string | null> {
+  const user = await getCurrentUser()
+  return user?.id || null
+}
+
+/**
+ * Get the authentication token.
+ */
+export async function getAuthToken(): Promise<string | null> {
+  if (typeof window === 'undefined') {
+    // Server-side
+    const user = await stackApp.getUser({ or: 'redirect' })
+    if (user) {
+      // Get the access token from Stack Auth
+      const tokens = await stackApp.getAuthJson()
+      return tokens?.accessToken || null
+    }
+  } else {
+    // Client-side: Stack Auth stores the token in cookies
+    // We need to retrieve it from the Stack Auth client
+    try {
+      const response = await fetch('/api/auth/session')
+      if (response.ok) {
+        const data = await response.json()
+        return data.accessToken || null
+      }
+    } catch (error) {
+      console.error('Failed to get auth token:', error)
+    }
+  }
+  
+  return null
 }
 
 /**
  * Get headers with authentication for API calls.
  */
-export function getAuthHeaders(): HeadersInit {
-  return {
-    'userID': getCurrentUserId(),
+export async function getAuthHeaders(): Promise<HeadersInit> {
+  const token = await getAuthToken()
+  const headers: HeadersInit = {
     'Content-Type': 'application/json',
   }
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  
+  return headers
 }
 
 /**
@@ -33,10 +78,7 @@ export async function authenticatedFetch(
   url: string, 
   options: RequestInit = {}
 ): Promise<Response> {
-  console.log('[Auth] Making authenticated fetch to:', url)
-  console.log('[Auth] Current window.location.origin:', window.location.origin)
-  
-  const authHeaders = getAuthHeaders()
+  const authHeaders = await getAuthHeaders()
   
   return fetch(url, {
     ...options,
@@ -49,9 +91,8 @@ export async function authenticatedFetch(
 
 /**
  * Check if user is authenticated.
- * For now, always returns true since we're using a hard-coded user ID.
- * In the future, this will check for valid authentication.
  */
-export function isAuthenticated(): boolean {
-  return true
+export async function isAuthenticated(): Promise<boolean> {
+  const user = await getCurrentUser()
+  return !!user
 } 
