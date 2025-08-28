@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import type { Securities, SecuritiesTrieResponse, TrieNode, APIResponse } from "@/lib/types"
-import { authenticatedFetch } from "@/lib/auth"
+import { useStackAuth } from "@/hooks/useStackAuth"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
@@ -27,19 +27,20 @@ export function SecuritiesProvider({ children }: SecuritiesProviderProps) {
   const [error, setError] = useState<string | null>(null)
   const [initialized, setInitialized] = useState(false)
   const [loadingPromise, setLoadingPromise] = useState<Promise<void> | null>(null)
+  
+  // Use Stack Auth for authenticated requests
+  const { authenticatedFetch } = useStackAuth()
 
   // Helper function to make authenticated API calls with error handling
   const apiCall = useCallback(async <T,>(
     url: string, 
     options: RequestInit = {}
   ): Promise<T> => {
-    console.log(`[Securities] Making API call to: ${API_BASE_URL}${url}`)
     setLoading(true)
     setError(null)
     
     try {
       const response = await authenticatedFetch(`${API_BASE_URL}${url}`, options)
-      console.log(`[Securities] API response status: ${response.status}`)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
@@ -50,24 +51,17 @@ export function SecuritiesProvider({ children }: SecuritiesProviderProps) {
       // For the trie endpoint, the server returns the data directly, not wrapped in APIResponse
       if (url.includes('/api/securities/trie')) {
         const data = await response.json()
-        console.log(`[Securities] Trie API response:`, {
-          hasTrie: !!data.trie,
-          count: data.count,
-          version: data.version
-        })
         return data as T
       }
 
       // For other endpoints, expect APIResponse wrapper
       const data: APIResponse<T> = await response.json()
-      console.log(`[Securities] API response success:`, data.success)
       
       if (!data.success) {
         console.error(`[Securities] API call failed:`, data.error)
         throw new Error(data.error || 'API call failed')
       }
 
-      console.log(`[Securities] API call successful, data type:`, typeof data.data)
       return data.data as T
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
@@ -77,47 +71,30 @@ export function SecuritiesProvider({ children }: SecuritiesProviderProps) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [authenticatedFetch])
 
   // Load securities trie once on initialization
   const loadSecuritiesTrie = useCallback(async (): Promise<void> => {
     if (initialized || loadingPromise) {
-      console.log(`[Securities] Skipping trie load - initialized: ${initialized}, loading promise exists: ${!!loadingPromise}`)
       if (loadingPromise) {
-        console.log(`[Securities] Waiting for existing load promise...`)
         await loadingPromise
       }
       return
     }
-
-    console.log(`[Securities] Starting securities trie load...`)
     
     const promise = (async () => {
       try {
         // Add cache busting parameter to force fresh request
         const cacheBuster = `?t=${Date.now()}`
         const trieResponse = await apiCall<SecuritiesTrieResponse>(`/api/securities/trie${cacheBuster}`)
-        console.log(`[Securities] Received trie response:`, {
-          hasRoot: !!trieResponse?.trie?.root,
-          trieKeys: trieResponse?.trie ? Object.keys(trieResponse.trie) : [],
-          rootKeys: trieResponse?.trie?.root ? Object.keys(trieResponse.trie.root) : []
-        })
         
         const rootNode = trieResponse.trie.root
         if (!rootNode) {
           throw new Error('No root node found in trie response')
         }
         
-        console.log(`[Securities] Setting trie root node:`, {
-          hasChildren: !!rootNode.children,
-          childrenCount: rootNode.children ? Object.keys(rootNode.children).length : 0,
-          hasSecurities: !!rootNode.securities,
-          securitiesCount: rootNode.securities ? rootNode.securities.length : 0
-        })
-        
         setSecuritiesTrie(rootNode)
         setInitialized(true)
-        console.log(`[Securities] Securities trie loaded successfully!`)
       } catch (err) {
         console.error('[Securities] Failed to load securities trie:', err)
         setError(err instanceof Error ? err.message : 'Failed to load securities')
@@ -132,39 +109,29 @@ export function SecuritiesProvider({ children }: SecuritiesProviderProps) {
 
   // Search function that traverses the trie based on input
   const searchSecurities = useCallback((query: string): Securities[] => {
-    console.log(`[Securities] Searching for: "${query}"`)
-    
     if (!securitiesTrie || !query) {
-      console.log(`[Securities] Search aborted - trie: ${!!securitiesTrie}, query: "${query}"`)
       return []
     }
     
     const upperQuery = query.toUpperCase()
     let currentNode = securitiesTrie
-    console.log(`[Securities] Traversing trie for: "${upperQuery}"`)
     
     // Traverse the trie using Unicode code points (Go runes become numeric string keys in JSON)
     for (let i = 0; i < upperQuery.length; i++) {
       const char = upperQuery[i]
       const charCode = char.charCodeAt(0).toString()
-      console.log(`[Securities] Char ${i}: "${char}" -> Unicode: ${charCode}`)
       
       if (!currentNode.children || !currentNode.children[charCode]) {
-        console.log(`[Securities] No children found for Unicode code: ${charCode}`)
-        console.log(`[Securities] Available children:`, currentNode.children ? Object.keys(currentNode.children) : 'none')
         return []
       }
       currentNode = currentNode.children[charCode]
     }
-    
-    console.log(`[Securities] Found matching node, collecting securities...`)
     
     // Collect all securities from this node and its descendants
     const results: Securities[] = []
     
     const collectSecurities = (node: TrieNode) => {
       if (node.securities) {
-        console.log(`[Securities] Found ${node.securities.length} securities in node`)
         results.push(...node.securities)
       }
       
@@ -176,8 +143,6 @@ export function SecuritiesProvider({ children }: SecuritiesProviderProps) {
     }
     
     collectSecurities(currentNode)
-    
-    console.log(`[Securities] Collected ${results.length} total securities`)
     
     // Sort by ticker length first (exact matches first), then alphabetically
     const sortedResults = results.sort((a, b) => {
@@ -194,15 +159,13 @@ export function SecuritiesProvider({ children }: SecuritiesProviderProps) {
       return a.ticker.localeCompare(b.ticker)
     })
     
-    console.log(`[Securities] Returning ${sortedResults.length} sorted results`)
     return sortedResults
   }, [securitiesTrie])
 
   // Load trie on mount
   useEffect(() => {
-    console.log(`[Securities] SecuritiesProvider mounted, starting trie load...`)
     loadSecuritiesTrie()
-  }, [])
+  }, [loadSecuritiesTrie])
 
   const clearError = useCallback(() => setError(null), [])
 

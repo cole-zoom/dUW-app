@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react"
 import type { Stock, CreateStockRequest, UpdateStockRequest, MoveStockRequest, APIResponse } from "@/lib/types"
-import { authenticatedFetch } from "@/lib/auth"
+import { useStackAuth } from "./useStackAuth"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
@@ -60,6 +60,7 @@ function validateUpdateStockRequest(data: UpdateStockRequest): UpdateStockReques
 export function useStockManager() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { authenticatedFetch } = useStackAuth()
 
   // Helper function to make authenticated API calls with error handling
   const apiCall = useCallback(async <T>(
@@ -91,7 +92,7 @@ export function useStockManager() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [authenticatedFetch])
 
   // GET /api/portfolios/{portfolio_id}/stocks
   const getStocks = useCallback(async (portfolioId: string): Promise<Stock[]> => {

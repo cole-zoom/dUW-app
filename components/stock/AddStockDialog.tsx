@@ -36,22 +36,10 @@ export function AddStockDialog({ open, onOpenChange, onAddStock }: AddStockDialo
     error: securitiesError
   } = useSecurities()
 
-  // Log securities context state for debugging
-  useEffect(() => {
-    console.log('[AddStockDialog] Securities context state:', {
-      initialized,
-      loading: securitiesLoading,
-      error: securitiesError,
-      dialogOpen: open
-    })
-  }, [initialized, securitiesLoading, securitiesError, open])
-
   // Handle search
   const handleSearch = (query: string) => {
-    console.log('[AddStockDialog] Handling search for query:', query)
     setSearchQuery(query)
     const results = searchSecurities(query)
-    console.log('[AddStockDialog] Search results:', results.length, 'securities found')
     setSearchResults(results)
   }
 

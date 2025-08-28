@@ -1,18 +1,23 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { getCurrentUserId, isAuthenticated } from './auth'
+import { useUser } from '@stackframe/stack'
+import { setCachedToken, setTokenGetter } from './client-auth'
 
 interface AuthContextType {
   userId: string | null
   isAuthenticated: boolean
   loading: boolean
+  token: string | null
+  getAccessToken: () => Promise<string | null>
 }
 
 const AuthContext = createContext<AuthContextType>({
   userId: null,
   isAuthenticated: false,
   loading: true,
+  token: null,
+  getAccessToken: async () => null,
 })
 
 interface AuthProviderProps {
@@ -20,43 +25,58 @@ interface AuthProviderProps {
 }
 
 /**
- * Auth provider that manages authentication state.
- * Currently uses hard-coded user ID, but designed to be easily
- * upgraded when we implement proper authentication.
+ * Auth provider that manages authentication state using Stack Auth.
  */
 export function AuthProvider({ children }: AuthProviderProps) {
+  const user = useUser()
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [authenticated, setAuthenticated] = useState(false)
+  const [token, setToken] = useState<string | null>(null)
+
+  // Function to get the current access token from Stack Auth
+  const getAccessToken = async (): Promise<string | null> => {
+    if (!user) return null
+    
+    try {
+      const authJson = await user.getAuthJson()
+      return authJson?.accessToken || null
+    } catch (error) {
+      console.error('[AuthContext] Failed to get access token:', error)
+      return null
+    }
+  }
 
   useEffect(() => {
-    // Simulate auth check - in the future this will be a real auth check
-    const checkAuth = async () => {
+    const initAuth = async () => {
       try {
-        const isAuth = isAuthenticated()
-        setAuthenticated(isAuth)
-        
-        if (isAuth) {
-          setUserId(getCurrentUserId())
+        if (user) {
+          // Set the token getter function for dynamic token retrieval
+          setTokenGetter(getAccessToken)
+          
+          // Get the actual access token from Stack Auth
+          const accessToken = await getAccessToken()
+          setCachedToken(accessToken)
+          setToken(accessToken)
         } else {
-          setUserId(null)
+          setTokenGetter(() => Promise.resolve(null))
+          setCachedToken(null)
+          setToken(null)
         }
       } catch (error) {
-        console.error('Auth check failed:', error)
-        setAuthenticated(false)
-        setUserId(null)
+        console.error('Auth initialization failed:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    checkAuth()
-  }, [])
+    initAuth()
+  }, [user])
 
   const value: AuthContextType = {
-    userId,
-    isAuthenticated: authenticated,
+    userId: user?.id || null,
+    isAuthenticated: !!user,
     loading,
+    token,
+    getAccessToken,
   }
 
   return (

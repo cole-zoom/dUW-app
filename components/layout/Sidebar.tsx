@@ -9,7 +9,7 @@ export function Sidebar() {
     <aside className="border-r bg-card">
       <div className="flex h-16 items-center gap-2 border-b px-6">
         <Wallet className="h-6 w-6" />
-        <span className="font-bold">dUWiligence</span>
+        <span className="font-bold">Duwiligence</span>
       </div>
       <nav className="space-y-2 px-2 mt-4">
         <Button asChild variant="ghost" className="w-full justify-start gap-2">
