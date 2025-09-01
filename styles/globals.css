@@ -57,3 +57,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Stack Auth spacing overrides - simple approach */
+.auth-container > * {
+  margin-bottom: 0.625rem !important;
+}
+
+.auth-container button {
+  margin-bottom: 0.625rem !important;
+}
+
+
+
+.auth-container p {
+  margin-bottom: 0.625rem !important;
+}
+
+.auth-container a {
+  margin-bottom: 0.625rem !important;
+}
+
+.auth-container label {
+  margin-bottom: 1rem !important;
+}
+
+
+
+/* Simple approach: just add a bit of bottom padding to the container */
+.auth-container {
+  padding-bottom: 1.5rem !important;
+}
