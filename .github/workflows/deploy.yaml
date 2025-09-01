@@ -1,0 +1,36 @@
+name: Deploy to EC2 via SSH
+
+# This workflow runs on every push to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out your repository's code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Deploy files to EC2 using rsync over SSH
+      - name: Deploy to EC2
+        uses: easingthemes/ssh-deploy@v5.0.0
+        with:
+          # The private SSH key stored in GitHub Secrets
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          # The public IP address of your EC2 instance
+          REMOTE_HOST: ${{ secrets.HOST }}
+
+          # The username for your EC2 instance (e.g., ec2-user, ubuntu)
+          REMOTE_USER: ${{ secrets.USERNAME }}
+
+          # The folder in your repository to deploy from (e.g., "/", "dist/", "build/")
+          SOURCE: "api/"
+          
+          # The destination folder on your EC2 instance
+          TARGET: "/var/www/duwapi"
