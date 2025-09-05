@@ -28,8 +28,36 @@ func CORS(next http.Handler) http.Handler {
 		log.Printf("[CORS] Request URL: %s", r.URL.String())
 		log.Printf("[CORS] Request method: %s", r.Method)
 
+		// Define allowed origins
+		allowedOrigins := []string{
+			"http://localhost:3000",
+			"https://duwiligence.app",
+			"https://www.duwiligence.app",
+			"https://d-uw-app.vercel.app",
+		}
+
+		// Check if origin is allowed
+		originAllowed := false
+
 		// Allow localhost origins with ports 3000-3999
 		if origin != "" && strings.HasPrefix(origin, "http://localhost:3") {
+			originAllowed = true
+		} else {
+			// Check against allowed production origins
+			for _, allowedOrigin := range allowedOrigins {
+				if origin == allowedOrigin {
+					originAllowed = true
+					break
+				}
+			}
+
+			// Also allow any vercel deployment URLs (*.vercel.app)
+			if origin != "" && strings.Contains(origin, ".vercel.app") {
+				originAllowed = true
+			}
+		}
+
+		if originAllowed {
 			log.Printf("[CORS] Allowing origin: %s", origin)
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		} else {
