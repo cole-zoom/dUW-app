@@ -2,6 +2,7 @@ import "@/styles/globals.css"
 import { Inter } from "next/font/google"
 import type React from "react"
 import { ThemeProvider } from "@/components/Theme/theme-provider"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { Metadata } from "next"
 import StackAuthProvider from "./stack-provider"
 
@@ -16,9 +17,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <StackAuthProvider>
-            {children}
-          </StackAuthProvider>
+          <TooltipProvider>
+            <StackAuthProvider>
+              {children}
+            </StackAuthProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
