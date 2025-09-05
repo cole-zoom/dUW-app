@@ -21,8 +21,10 @@ jobs:
 
       - name: Build the application
         run: |
-          # The output binary will be named 'duw-api'
-          go build -o duw-api ./api/cmd/server
+          # Change into the 'api' directory first
+          cd api
+          # Build the app, placing the output binary in the repo root
+          go build -o ../duw-api ./cmd/server
 
       - name: Set timestamp
         run: echo "RELEASE_VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
