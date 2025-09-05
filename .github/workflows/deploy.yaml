@@ -1,6 +1,5 @@
 name: Deploy to EC2 via SSH
 
-# This workflow runs on every push to the 'main' branch
 on:
   push:
     branches:
@@ -12,25 +11,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out your repository's code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Deploy files to EC2 using rsync over SSH
-      - name: Deploy to EC2
+      # Step 1: Set the timestamp as a job-level environment variable
+      - name: Set timestamp
+        run: echo "RELEASE_VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+      # Step 2: Deploy files using the shared timestamp
+      - name: Deploy to Server
         uses: easingthemes/ssh-deploy@v5.0.0
         with:
-          # The private SSH key stored in GitHub Secrets
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
-          # The public IP address of your EC2 instance
           REMOTE_HOST: ${{ secrets.HOST }}
-
-          # The username for your EC2 instance (e.g., ec2-user, ubuntu)
           REMOTE_USER: ${{ secrets.USERNAME }}
+          # Use the environment variable set in the previous step
+          TARGET: /var/www/duwapi/releases/${{ env.RELEASE_VERSION }}
 
-          # The folder in your repository to deploy from (e.g., "/", "dist/", "build/")
-          SOURCE: "api/"
-          
-          # The destination folder on your EC2 instance
-          TARGET: "/var/www/duwapi"
+      # Step 3: Update the symlink using the SAME shared timestamp
+      - name: Update Symlink
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Use the environment variable for the symlink target
+            ln -nfs /var/www/duwapi/releases/${{ env.RELEASE_VERSION }} /var/www/duwapi/current
