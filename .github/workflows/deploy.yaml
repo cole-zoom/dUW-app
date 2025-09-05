@@ -1,4 +1,4 @@
-name: Deploy to EC2 via SSH
+name: Build and Deploy to EC2
 
 on:
   push:
@@ -7,34 +7,44 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to EC2
+    name: Build and Deploy
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 1: Set the timestamp as a job-level environment variable
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22' # Or your Go version
+
+      - name: Build the application
+        run: |
+          # The output binary will be named 'duw-api'
+          go build -o duw-api ./api/cmd/server
+
       - name: Set timestamp
         run: echo "RELEASE_VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      # Step 2: Deploy files using the shared timestamp
-      - name: Deploy to Server
+      - name: Deploy files to Server
         uses: easingthemes/ssh-deploy@v5.0.0
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.HOST }}
           REMOTE_USER: ${{ secrets.USERNAME }}
-          # Use the environment variable set in the previous step
+          # The SOURCE includes the main directory and the new binary
+          SOURCE: "./"
           TARGET: /var/www/duwapi/releases/${{ env.RELEASE_VERSION }}
 
-      # Step 3: Update the symlink using the SAME shared timestamp
-      - name: Update Symlink
+      - name: Update symlink and restart service
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Use the environment variable for the symlink target
+            # Update the symlink to the new release
             ln -nfs /var/www/duwapi/releases/${{ env.RELEASE_VERSION }} /var/www/duwapi/current
+            # Restart the service to run the new code
+            sudo systemctl restart duw-api.service
