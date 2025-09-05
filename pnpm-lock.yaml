@@ -126,13 +126,13 @@ importers:
         specifier: latest
         version: 0.4.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react:
-        specifier: ^19
+        specifier: ^19.1.1
         version: 19.1.1
       react-day-picker:
         specifier: ^9.8.0
         version: 9.9.0(react@19.1.1)
       react-dom:
-        specifier: ^19
+        specifier: ^19.1.1
         version: 19.1.1(react@19.1.1)
       react-hook-form:
         specifier: ^7.54.1
