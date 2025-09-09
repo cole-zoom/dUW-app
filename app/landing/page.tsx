@@ -52,7 +52,7 @@ export default function LandingPage() {
                 onClick={() => handleAuth('signup')}
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Get Started
+                Sign Up
               </Button>
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function LandingPage() {
               onClick={() => handleAuth('signup')}
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 flex items-center gap-2 px-8 py-6 text-lg"
             >
-              Upload Your Portfolio
+              Start your due diligence
               <ArrowRight className="h-5 w-5" />
             </Button>
           </div>
@@ -96,7 +96,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-muted-foreground text-base">
-                  Upload your existing portfolio and receive a comprehensive breakdown of strengths, risks, and opportunities.
+                  Re-Create your existing portfolio and receive a comprehensive newsletter of the previous day's news.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -111,7 +111,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-muted-foreground text-base">
-                  Get a streamlined view of your holdings — cut through the noise and focus on the key takeaways.
+                  Get a streamlined view of your holdings and track them all in one place.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -137,7 +137,7 @@ export default function LandingPage() {
       {/* Additional Features Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
-          <h3 className="text-3xl font-bold text-center mb-12 text-foreground">Why Choose Duwiligence?</h3>
+          <h3 className="text-3xl font-bold text-center mb-12 text-foreground">What is Duwiligence?</h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -150,22 +150,22 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-8 w-8 text-secondary" />
               </div>
-              <h4 className="font-semibold mb-2 text-foreground">Risk Assessment</h4>
-              <p className="text-sm text-muted-foreground">Identify potential risks in your portfolio</p>
+              <h4 className="font-semibold mb-2 text-foreground">Dashboard Building</h4>
+              <p className="text-sm text-muted-foreground">Build your own dashboard to track your investments</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Sparkles className="h-8 w-8 text-accent" />
               </div>
-              <h4 className="font-semibold mb-2 text-foreground">Smart Insights</h4>
-              <p className="text-sm text-muted-foreground">AI-powered analysis for better decisions</p>
+              <h4 className="font-semibold mb-2 text-foreground">Daily News</h4>
+              <p className="text-sm text-muted-foreground">Recieve a daily newsletter of the previous day's news</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <PieChart className="h-8 w-8 text-primary" />
               </div>
-              <h4 className="font-semibold mb-2 text-foreground">Diversification Analysis</h4>
-              <p className="text-sm text-muted-foreground">Optimize your portfolio allocation</p>
+              <h4 className="font-semibold mb-2 text-foreground">Portfolio Management</h4>
+              <p className="text-sm text-muted-foreground">Manage your portfolio and track your investments</p>
             </div>
           </div>
         </div>
@@ -174,16 +174,16 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto text-center max-w-3xl">
-          <h3 className="text-4xl font-bold mb-6 text-foreground">Ready to Take Control of Your Investments?</h3>
+          <h3 className="text-4xl font-bold mb-6 text-foreground">Want to get started?</h3>
           <p className="text-lg text-muted-foreground mb-8">
-            Join thousands of investors who trust Duwiligence for portfolio analysis
+            Sign up for easy portfolio management and due diligence.
           </p>
           <Button 
             size="lg"
             onClick={() => handleAuth('signup')}
             className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 text-lg"
           >
-            Start Your Free Analysis
+            Create An Account
           </Button>
         </div>
       </section>
@@ -191,7 +191,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border">
         <div className="container mx-auto text-center">
-          <p className="text-muted-foreground">© 2025 Duwiligence. All rights reserved.</p>
+          <p className="text-muted-foreground">© 2025 Duwiligence</p>
         </div>
       </footer>
     </div>
