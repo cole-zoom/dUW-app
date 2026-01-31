@@ -57,12 +57,13 @@ type PolygonAPIResponse struct {
 
 // AggregateBar represents a single OHLC bar from Polygon aggregates endpoint
 type AggregateBar struct {
+	Ticker    string        `json:"T,omitempty"` // Ticker symbol (uppercase T) - included in some endpoints
 	Open      float64       `json:"o"`
 	High      float64       `json:"h"`
 	Low       float64       `json:"l"`
 	Close     float64       `json:"c"`
 	Volume    float64       `json:"v"`
-	Timestamp FlexibleInt64 `json:"t"` // Can be int64 or string from API
+	Timestamp FlexibleInt64 `json:"t"` // Unix timestamp in milliseconds (lowercase t)
 	VWAP      float64       `json:"vw"`
 	NumTrades int           `json:"n"`
 }

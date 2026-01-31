@@ -251,8 +251,15 @@ func (c *PolygonClient) GetPreviousClose(ctx context.Context, ticker string) (*m
 		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
 	}
 
+	// Read the body for debugging
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	log.Printf("GetPreviousClose raw response: %s", string(bodyBytes))
+
 	var apiResponse models.PreviousCloseResponse
-	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+	if err := json.Unmarshal(bodyBytes, &apiResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
