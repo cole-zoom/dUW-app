@@ -58,32 +58,49 @@
   }
 }
 
-/* Custom Stack Auth spacing overrides - simple approach */
-.auth-container > * {
-  margin-bottom: 0.625rem !important;
-}
-
-.auth-container button {
-  margin-bottom: 0.625rem !important;
-}
-
-
-
-.auth-container p {
-  margin-bottom: 0.625rem !important;
-}
-
-.auth-container a {
-  margin-bottom: 0.625rem !important;
-}
-
-.auth-container label {
-  margin-bottom: 1rem !important;
-}
-
-
-
-/* Simple approach: just add a bit of bottom padding to the container */
+/* Stack Auth container styling */
 .auth-container {
   padding-bottom: 1.5rem !important;
+}
+
+/* Ensure Stack Auth content uses consistent flex layout */
+.auth-container > div {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+}
+
+/* Stack Auth form spacing */
+.auth-container form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+}
+
+/* OAuth buttons - ensure proper spacing and prevent text overlap */
+.auth-container button {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Ensure button text doesn't overlap during state transitions */
+.auth-container button span {
+  position: relative !important;
+}
+
+/* Divider (Or continue with) spacing */
+.auth-container [data-stack-component="divider"],
+.auth-container hr {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Form field wrapper spacing */
+.auth-container label {
+  margin-bottom: 0.25rem !important;
+}
+
+/* Form inputs */
+.auth-container input {
+  margin-bottom: 0 !important;
 }
