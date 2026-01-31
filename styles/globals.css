@@ -104,3 +104,100 @@
 .auth-container input {
   margin-bottom: 0 !important;
 }
+
+/* 8-bit animated gradient background */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 100% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 8s steps(8) infinite;
+}
+
+/* 8-bit style pixel grid overlay */
+@keyframes pixel-flicker {
+  0%, 100% {
+    opacity: 0.03;
+  }
+  50% {
+    opacity: 0.06;
+  }
+}
+
+.pixel-grid-overlay {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 8px 8px;
+  animation: pixel-flicker 2s steps(2) infinite;
+}
+
+/* CRT scanline effect */
+.scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+}
+
+/* 8-bit button style */
+.pixel-button {
+  position: relative;
+  background: hsl(var(--primary));
+  border: none;
+  padding: 12px 24px;
+  font-family: monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: transform 0.1s steps(2);
+}
+
+.pixel-button::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: -4px;
+  bottom: -4px;
+  background: hsl(var(--secondary));
+  z-index: -1;
+}
+
+.pixel-button::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: -8px;
+  bottom: -8px;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -2;
+}
+
+.pixel-button:hover {
+  transform: translate(-2px, -2px);
+}
+
+.pixel-button:active {
+  transform: translate(2px, 2px);
+}
