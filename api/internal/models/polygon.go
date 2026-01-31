@@ -1,5 +1,35 @@
 package models
 
+import (
+	"encoding/json"
+	"strconv"
+)
+
+// FlexibleInt64 can unmarshal from either a JSON number or a JSON string
+type FlexibleInt64 int64
+
+func (f *FlexibleInt64) UnmarshalJSON(data []byte) error {
+	// First try to unmarshal as int64
+	var i int64
+	if err := json.Unmarshal(data, &i); err == nil {
+		*f = FlexibleInt64(i)
+		return nil
+	}
+
+	// If that fails, try as string
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	parsed, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return err
+	}
+	*f = FlexibleInt64(parsed)
+	return nil
+}
+
 // PolygonTickerResponse represents a single ticker response from Polygon API
 type PolygonTickerResponse struct {
 	Ticker          string `json:"ticker"`
@@ -27,14 +57,14 @@ type PolygonAPIResponse struct {
 
 // AggregateBar represents a single OHLC bar from Polygon aggregates endpoint
 type AggregateBar struct {
-	Open      float64 `json:"o"`
-	High      float64 `json:"h"`
-	Low       float64 `json:"l"`
-	Close     float64 `json:"c"`
-	Volume    float64 `json:"v"`
-	Timestamp int64   `json:"t"`
-	VWAP      float64 `json:"vw"`
-	NumTrades int     `json:"n"`
+	Open      float64       `json:"o"`
+	High      float64       `json:"h"`
+	Low       float64       `json:"l"`
+	Close     float64       `json:"c"`
+	Volume    float64       `json:"v"`
+	Timestamp FlexibleInt64 `json:"t"` // Can be int64 or string from API
+	VWAP      float64       `json:"vw"`
+	NumTrades int           `json:"n"`
 }
 
 // AggregatesResponse represents the response from Polygon aggregates endpoint

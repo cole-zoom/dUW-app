@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/cole-zoom/dUW-app/api/internal/clients"
 	"github.com/cole-zoom/dUW-app/api/internal/services"
 )
 
@@ -88,6 +90,14 @@ func (h *StockAPIHandler) GetTickerDetails(w http.ResponseWriter, r *http.Reques
 	details, err := h.stockService.GetTickerDetails(r.Context(), ticker)
 	if err != nil {
 		log.Printf("Error getting ticker details for %s: %v", ticker, err)
+
+		// Check if it's a "not found" error and return 404 instead of 500
+		var notFoundErr *clients.TickerNotFoundError
+		if errors.As(err, &notFoundErr) {
+			http.Error(w, fmt.Sprintf("Ticker not found: %s", ticker), http.StatusNotFound)
+			return
+		}
+
 		http.Error(w, fmt.Sprintf("Failed to get ticker details: %v", err), http.StatusInternalServerError)
 		return
 	}

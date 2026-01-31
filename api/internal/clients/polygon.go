@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -159,6 +160,15 @@ func (c *PolygonClient) GetAggregates(ctx context.Context, ticker, multiplier, t
 	return &apiResponse, nil
 }
 
+// TickerNotFoundError is returned when a ticker doesn't exist in Polygon's database.
+type TickerNotFoundError struct {
+	Ticker string
+}
+
+func (e *TickerNotFoundError) Error() string {
+	return fmt.Sprintf("ticker not found: %s", e.Ticker)
+}
+
 // GetTickerDetails fetches detailed information about a ticker from Polygon API.
 func (c *PolygonClient) GetTickerDetails(ctx context.Context, ticker string) (*models.TickerDetails, error) {
 	if err := c.waitForRateLimit(ctx); err != nil {
@@ -188,6 +198,14 @@ func (c *PolygonClient) GetTickerDetails(ctx context.Context, ticker string) (*m
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		// Read the error response body for better debugging
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("Polygon API error for ticker %s: status=%d, body=%s", ticker, resp.StatusCode, string(bodyBytes))
+
+		// Return a specific error type for 404 so handlers can respond appropriately
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, &TickerNotFoundError{Ticker: ticker}
+		}
 		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
 	}
 
