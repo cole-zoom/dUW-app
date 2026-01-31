@@ -1,12 +1,11 @@
 "use client"
 
-import { useState } from 'react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { TrendingUp, Shield, Eye, ChartBar, ArrowRight, Sparkles, LineChart, PieChart } from 'lucide-react'
 import { ThemeToggle } from '@/components/Theme/theme-toggle'
 import { useStackApp } from "@stackframe/stack"
+import { PixelText } from '@/components/8bit/PixelLetter'
+import { PixelGradientCSS, ScanlineOverlay } from '@/components/8bit/PixelBackground'
 
 export default function LandingPage() {
   const { theme } = useTheme()
@@ -25,175 +24,119 @@ export default function LandingPage() {
         await app.redirectToSignUp()
       }
     } catch (error) {
-      console.error("❌ Authentication redirect failed:", error)
+      console.error("Authentication redirect failed:", error)
       alert(`Authentication failed: ${error}`)
     }
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md border-b border-border z-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Animated 8-bit gradient background */}
+      <PixelGradientCSS />
+
+      {/* Pixel grid overlay */}
+      <div className="absolute inset-0 pixel-grid-overlay" />
+
+      {/* Scanline effect */}
+      <ScanlineOverlay className="z-10" />
+
+      {/* Content */}
+      <div className="relative z-20 min-h-screen flex flex-col">
+        {/* Navigation */}
+        <nav className="w-full p-4 sm:p-6">
+          <div className="container mx-auto flex justify-between items-center">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-foreground">Duwiligence</h1>
+              <span className="text-white font-mono text-lg tracking-wider">dUW</span>
             </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
-              <Button 
-                variant="ghost" 
+              <button
                 onClick={() => handleAuth('signin')}
-                className="text-foreground hover:bg-muted"
+                className="pixel-button text-sm"
               >
                 Log In
-              </Button>
-              <Button 
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            {/* 8-bit Title */}
+            <div className="mb-8 flex flex-col items-center gap-4">
+              <PixelText text="DUWILIGENCE" size={48} className="flex-wrap justify-center" />
+            </div>
+
+            {/* Subtitle */}
+            <p className="font-mono text-white/80 text-lg sm:text-xl mb-12 max-w-xl mx-auto tracking-wide">
+              Portfolio-Specific Newsletter
+            </p>
+
+            {/* 8-bit styled CTA buttons */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <button
                 onClick={() => handleAuth('signup')}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="pixel-button text-base px-8 py-4"
               >
-                Sign Up
-              </Button>
+                Get Started
+              </button>
             </div>
           </div>
-        </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto text-center max-w-4xl">
-          <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground mb-6">
-            Do Ur oWn Diligence
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Provide your portfolio, and Duwiligence will generate clear, actionable insights.
-            Analyze, track, and understand your investments — all in one place.
+          {/* Decorative 8-bit elements */}
+          <div className="mt-16 flex gap-8 opacity-60">
+            <div className="w-4 h-4 bg-[#5A7A60]" />
+            <div className="w-4 h-4 bg-[#A5859F]" />
+            <div className="w-4 h-4 bg-white" />
+            <div className="w-4 h-4 bg-[#A5859F]" />
+            <div className="w-4 h-4 bg-[#5A7A60]" />
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="w-full p-6 text-center">
+          <p className="font-mono text-white/50 text-sm">
+            2025 Duwiligence
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              size="lg" 
-              onClick={() => handleAuth('signup')}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 flex items-center gap-2 px-8 py-6 text-lg"
-            >
-              Start your due diligence
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </section>
+        </footer>
+      </div>
 
-      {/* Features Grid */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Portfolio Insights */}
-            <Card className="bg-card border-border hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-              <CardHeader className="pb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <ChartBar className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle className="text-2xl text-card-foreground">Portfolio Insights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-muted-foreground text-base">
-                  Re-Create your existing portfolio and receive a comprehensive newsletter of the previous day's news.
-                </CardDescription>
-              </CardContent>
-            </Card>
+      {/* Animated floating pixels decoration */}
+      <FloatingPixels />
+    </div>
+  )
+}
 
-            {/* Condensed Analysis */}
-            <Card className="bg-card border-border hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-              <CardHeader className="pb-4">
-                <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Eye className="h-6 w-6 text-secondary" />
-                </div>
-                <CardTitle className="text-2xl text-card-foreground">Condensed Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-muted-foreground text-base">
-                  Get a streamlined view of your holdings and track them all in one place.
-                </CardDescription>
-              </CardContent>
-            </Card>
+// Animated floating pixel decorations
+function FloatingPixels() {
+  const pixels = [
+    { size: 12, x: '10%', y: '20%', delay: 0, color: '#5A7A60' },
+    { size: 8, x: '85%', y: '15%', delay: 1, color: '#A5859F' },
+    { size: 16, x: '75%', y: '70%', delay: 2, color: '#5A7A60' },
+    { size: 10, x: '15%', y: '75%', delay: 0.5, color: '#A5859F' },
+    { size: 14, x: '90%', y: '45%', delay: 1.5, color: '#5A7A60' },
+    { size: 8, x: '5%', y: '50%', delay: 2.5, color: '#A5859F' },
+  ]
 
-            {/* Dashboard Overview */}
-            <Card className="bg-card border-border hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-              <CardHeader className="pb-4">
-                <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
-                  <LineChart className="h-6 w-6 text-accent" />
-                </div>
-                <CardTitle className="text-2xl text-card-foreground">Dashboard Overview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-muted-foreground text-base">
-                  Track portfolio performance in real-time with a clean, easy-to-read dashboard.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Additional Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
-        <div className="container mx-auto max-w-6xl">
-          <h3 className="text-3xl font-bold text-center mb-12 text-foreground">What is Duwiligence?</h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="h-8 w-8 text-primary" />
-              </div>
-              <h4 className="font-semibold mb-2 text-foreground">Real-Time Tracking</h4>
-              <p className="text-sm text-muted-foreground">Monitor your investments with live market data</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-secondary" />
-              </div>
-              <h4 className="font-semibold mb-2 text-foreground">Dashboard Building</h4>
-              <p className="text-sm text-muted-foreground">Build your own dashboard to track your investments</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="h-8 w-8 text-accent" />
-              </div>
-              <h4 className="font-semibold mb-2 text-foreground">Daily News</h4>
-              <p className="text-sm text-muted-foreground">Recieve a daily newsletter of the previous day's news</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <PieChart className="h-8 w-8 text-primary" />
-              </div>
-              <h4 className="font-semibold mb-2 text-foreground">Portfolio Management</h4>
-              <p className="text-sm text-muted-foreground">Manage your portfolio and track your investments</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto text-center max-w-3xl">
-          <h3 className="text-4xl font-bold mb-6 text-foreground">Want to get started?</h3>
-          <p className="text-lg text-muted-foreground mb-8">
-            Sign up for easy portfolio management and due diligence.
-          </p>
-          <Button 
-            size="lg"
-            onClick={() => handleAuth('signup')}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 text-lg"
-          >
-            Create An Account
-          </Button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border">
-        <div className="container mx-auto text-center">
-          <p className="text-muted-foreground">© 2025 Duwiligence</p>
-        </div>
-      </footer>
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-5">
+      {pixels.map((pixel, index) => (
+        <div
+          key={index}
+          className="absolute animate-pulse"
+          style={{
+            width: pixel.size,
+            height: pixel.size,
+            left: pixel.x,
+            top: pixel.y,
+            backgroundColor: pixel.color,
+            animationDelay: `${pixel.delay}s`,
+            animationDuration: '3s',
+            opacity: 0.4,
+          }}
+        />
+      ))}
     </div>
   )
 }
