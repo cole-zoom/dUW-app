@@ -10,6 +10,7 @@ import { usePortfolioManager } from "@/hooks/usePortfolioManager"
 import { useStockManager } from "@/hooks/useStockManager"
 import type { Stock } from "@/lib/types"
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout"
+import { PixelText } from "@/components/8bit/PixelLetter"
 
 // Portfolio page component for managing portfolios and stocks
 export default function PortfolioPage() {
@@ -92,16 +93,21 @@ export default function PortfolioPage() {
     <AuthenticatedLayout>
       <main className="relative p-6">
         <div className="mb-6 flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold">Portfolio Creation</h1>
-            <div className="text-sm">Create and manage your investment portfolios</div>
+          <div className="space-y-2">
+            <PixelText text="PORTFOLIO" size={28} />
+            <p className="font-mono text-sm text-muted-foreground">
+              Create and manage your investment portfolios
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button onClick={() => setIsAddPortfolioDialogOpen(true)} className="gap-2">
+            <button
+              onClick={() => setIsAddPortfolioDialogOpen(true)}
+              className="pixel-button text-sm flex items-center gap-2"
+            >
               <Plus className="h-4 w-4" />
               Add Portfolio
-            </Button>
+            </button>
           </div>
         </div>
 
