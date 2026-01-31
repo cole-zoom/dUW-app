@@ -94,3 +94,124 @@ func (c *PolygonClient) GetSuggestedStocks(ctx context.Context, query string) ([
 	log.Printf("Successfully retrieved %d stocks in SINGLE API request", len(stocks))
 	return stocks, nil
 }
+
+// GetAggregates fetches historical OHLC data for a ticker from Polygon API.
+// multiplier: size of the timespan multiplier (e.g., "1")
+// timespan: size of the time window (e.g., "day", "week", "month")
+// from, to: date range in YYYY-MM-DD format
+func (c *PolygonClient) GetAggregates(ctx context.Context, ticker, multiplier, timespan, from, to string) (*models.AggregatesResponse, error) {
+	log.Printf("GetAggregates called for ticker: %s, timespan: %s, from: %s, to: %s", ticker, timespan, from, to)
+
+	// Build the API URL
+	// GET /v2/aggs/ticker/{stocksTicker}/range/{multiplier}/{timespan}/{from}/{to}
+	baseURL := fmt.Sprintf("https://api.polygon.io/v2/aggs/ticker/%s/range/%s/%s/%s/%s",
+		ticker, multiplier, timespan, from, to)
+
+	params := url.Values{}
+	params.Set("adjusted", "true")
+	params.Set("sort", "asc")
+	params.Set("apiKey", c.apiKey)
+
+	apiURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
+	log.Printf("Making API request to: %s", baseURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
+	}
+
+	var apiResponse models.AggregatesResponse
+	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	log.Printf("GetAggregates Response: Status=%s, ResultsCount=%d", apiResponse.Status, apiResponse.ResultsCount)
+	return &apiResponse, nil
+}
+
+// GetTickerDetails fetches detailed information about a ticker from Polygon API.
+func (c *PolygonClient) GetTickerDetails(ctx context.Context, ticker string) (*models.TickerDetails, error) {
+	log.Printf("GetTickerDetails called for ticker: %s", ticker)
+
+	// Build the API URL
+	// GET /v3/reference/tickers/{ticker}
+	baseURL := fmt.Sprintf("https://api.polygon.io/v3/reference/tickers/%s", ticker)
+
+	params := url.Values{}
+	params.Set("apiKey", c.apiKey)
+
+	apiURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
+	log.Printf("Making API request to: %s", baseURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
+	}
+
+	var apiResponse models.TickerDetailsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	log.Printf("GetTickerDetails Response: Status=%s, Ticker=%s", apiResponse.Status, apiResponse.Results.Ticker)
+	return &apiResponse.Results, nil
+}
+
+// GetPreviousClose fetches the previous day's OHLC data for a ticker from Polygon API.
+func (c *PolygonClient) GetPreviousClose(ctx context.Context, ticker string) (*models.PreviousCloseResponse, error) {
+	log.Printf("GetPreviousClose called for ticker: %s", ticker)
+
+	// Build the API URL
+	// GET /v2/aggs/ticker/{stocksTicker}/prev
+	baseURL := fmt.Sprintf("https://api.polygon.io/v2/aggs/ticker/%s/prev", ticker)
+
+	params := url.Values{}
+	params.Set("adjusted", "true")
+	params.Set("apiKey", c.apiKey)
+
+	apiURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
+	log.Printf("Making API request to: %s", baseURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
+	}
+
+	var apiResponse models.PreviousCloseResponse
+	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	log.Printf("GetPreviousClose Response: Status=%s, ResultsCount=%d", apiResponse.Status, apiResponse.ResultsCount)
+	return &apiResponse, nil
+}

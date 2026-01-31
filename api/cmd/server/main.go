@@ -108,6 +108,11 @@ func main() {
 	mux.HandleFunc("PATCH /api/portfolios/{portfolioID}/stocks/{stockID}/move", stockHandler.MoveStock)
 	mux.HandleFunc("GET /api/stocks/suggestions", polygonStockHandler.GetSuggestedStocks)
 
+	// Stock data endpoints (Polygon API)
+	mux.HandleFunc("GET /api/stocks/{ticker}/aggregates", polygonStockHandler.GetAggregates)
+	mux.HandleFunc("GET /api/stocks/{ticker}/details", polygonStockHandler.GetTickerDetails)
+	mux.HandleFunc("GET /api/stocks/{ticker}/previous", polygonStockHandler.GetPreviousClose)
+
 	mux.HandleFunc("GET /api/securities/trie", securitiesHandler.GetSecuritiesTrie)
 	mux.HandleFunc("GET /api/securities/search", securitiesHandler.SearchSecurities)
 

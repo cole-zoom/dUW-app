@@ -36,3 +36,82 @@ func (h *StockAPIHandler) GetSuggestedStocks(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(stocks)
 }
+
+// GetAggregates is the HTTP handler for fetching historical OHLC data.
+// GET /api/stocks/{ticker}/aggregates?timespan=day&from=2024-01-01&to=2024-12-31&multiplier=1
+func (h *StockAPIHandler) GetAggregates(w http.ResponseWriter, r *http.Request) {
+	ticker := r.PathValue("ticker")
+	if ticker == "" {
+		http.Error(w, "Ticker is required", http.StatusBadRequest)
+		return
+	}
+
+	// Get query parameters with defaults
+	timespan := r.URL.Query().Get("timespan")
+	if timespan == "" {
+		timespan = "day"
+	}
+
+	multiplier := r.URL.Query().Get("multiplier")
+	if multiplier == "" {
+		multiplier = "1"
+	}
+
+	from := r.URL.Query().Get("from")
+	to := r.URL.Query().Get("to")
+
+	if from == "" || to == "" {
+		http.Error(w, "Both 'from' and 'to' date parameters are required (YYYY-MM-DD format)", http.StatusBadRequest)
+		return
+	}
+
+	aggregates, err := h.stockService.GetAggregates(r.Context(), ticker, multiplier, timespan, from, to)
+	if err != nil {
+		log.Printf("Error getting aggregates for %s: %v", ticker, err)
+		http.Error(w, fmt.Sprintf("Failed to get aggregates: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(aggregates)
+}
+
+// GetTickerDetails is the HTTP handler for fetching detailed ticker information.
+// GET /api/stocks/{ticker}/details
+func (h *StockAPIHandler) GetTickerDetails(w http.ResponseWriter, r *http.Request) {
+	ticker := r.PathValue("ticker")
+	if ticker == "" {
+		http.Error(w, "Ticker is required", http.StatusBadRequest)
+		return
+	}
+
+	details, err := h.stockService.GetTickerDetails(r.Context(), ticker)
+	if err != nil {
+		log.Printf("Error getting ticker details for %s: %v", ticker, err)
+		http.Error(w, fmt.Sprintf("Failed to get ticker details: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(details)
+}
+
+// GetPreviousClose is the HTTP handler for fetching previous day's OHLC data.
+// GET /api/stocks/{ticker}/previous
+func (h *StockAPIHandler) GetPreviousClose(w http.ResponseWriter, r *http.Request) {
+	ticker := r.PathValue("ticker")
+	if ticker == "" {
+		http.Error(w, "Ticker is required", http.StatusBadRequest)
+		return
+	}
+
+	prevClose, err := h.stockService.GetPreviousClose(r.Context(), ticker)
+	if err != nil {
+		log.Printf("Error getting previous close for %s: %v", ticker, err)
+		http.Error(w, fmt.Sprintf("Failed to get previous close: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(prevClose)
+}
