@@ -10,23 +10,40 @@ import (
 	"time"
 
 	"github.com/cole-zoom/dUW-app/api/internal/models"
+	"golang.org/x/time/rate"
 )
 
 type PolygonClient struct {
-	httpClient *http.Client
-	apiKey     string
+	httpClient  *http.Client
+	apiKey      string
+	rateLimiter *rate.Limiter
 }
 
 func NewPolygonClient(apiKey string) *PolygonClient {
 	return &PolygonClient{
 		httpClient: &http.Client{Timeout: 10 * time.Second},
 		apiKey:     apiKey,
+		// Polygon.io free tier: 5 requests/minute = 1 every 12 seconds
+		// Burst of 5 allows initial requests to go through quickly
+		rateLimiter: rate.NewLimiter(rate.Every(12*time.Second), 5),
 	}
+}
+
+// waitForRateLimit waits for the rate limiter before making an API call.
+// Returns an error if the context is cancelled while waiting.
+func (c *PolygonClient) waitForRateLimit(ctx context.Context) error {
+	if err := c.rateLimiter.Wait(ctx); err != nil {
+		return fmt.Errorf("rate limit wait failed: %w", err)
+	}
+	return nil
 }
 
 // GetSuggestedStocks fetches stocks from the Polygon API based on a search query.
 // This method makes a SINGLE HTTP request to avoid rate limiting issues.
 func (c *PolygonClient) GetSuggestedStocks(ctx context.Context, query string) ([]models.DisplayStock, error) {
+	if err := c.waitForRateLimit(ctx); err != nil {
+		return nil, err
+	}
 	log.Printf("GetSuggestedStocks called with query: '%s'", query)
 
 	// Build the API URL with parameters
@@ -100,6 +117,9 @@ func (c *PolygonClient) GetSuggestedStocks(ctx context.Context, query string) ([
 // timespan: size of the time window (e.g., "day", "week", "month")
 // from, to: date range in YYYY-MM-DD format
 func (c *PolygonClient) GetAggregates(ctx context.Context, ticker, multiplier, timespan, from, to string) (*models.AggregatesResponse, error) {
+	if err := c.waitForRateLimit(ctx); err != nil {
+		return nil, err
+	}
 	log.Printf("GetAggregates called for ticker: %s, timespan: %s, from: %s, to: %s", ticker, timespan, from, to)
 
 	// Build the API URL
@@ -141,6 +161,9 @@ func (c *PolygonClient) GetAggregates(ctx context.Context, ticker, multiplier, t
 
 // GetTickerDetails fetches detailed information about a ticker from Polygon API.
 func (c *PolygonClient) GetTickerDetails(ctx context.Context, ticker string) (*models.TickerDetails, error) {
+	if err := c.waitForRateLimit(ctx); err != nil {
+		return nil, err
+	}
 	log.Printf("GetTickerDetails called for ticker: %s", ticker)
 
 	// Build the API URL
@@ -179,6 +202,9 @@ func (c *PolygonClient) GetTickerDetails(ctx context.Context, ticker string) (*m
 
 // GetPreviousClose fetches the previous day's OHLC data for a ticker from Polygon API.
 func (c *PolygonClient) GetPreviousClose(ctx context.Context, ticker string) (*models.PreviousCloseResponse, error) {
+	if err := c.waitForRateLimit(ctx); err != nil {
+		return nil, err
+	}
 	log.Printf("GetPreviousClose called for ticker: %s", ticker)
 
 	// Build the API URL
