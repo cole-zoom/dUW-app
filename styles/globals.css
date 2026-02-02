@@ -58,52 +58,20 @@
   }
 }
 
-/* Stack Auth container styling */
-.auth-container {
-  padding-bottom: 1.5rem !important;
+/* ========================================
+   Stack Auth "Last Used" Badge Fix
+   Hide the badge that appears on the last-used OAuth button
+   ======================================== */
+
+/* Hide any element with "last" text that's absolutely positioned */
+button span[class*="absolute"][class*="bg-blue"],
+button span[class*="rounded"][class*="bg-blue"],
+button > span[class*="text-white"][class*="text-xs"],
+span[class*="absolute"][class*="-top"],
+span[class*="absolute"][class*="-right"] {
+  display: none !important;
 }
 
-/* Ensure Stack Auth content uses consistent flex layout */
-.auth-container > div {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 1rem !important;
-}
-
-/* Stack Auth form spacing */
-.auth-container form {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 1rem !important;
-}
-
-/* OAuth buttons - ensure proper spacing and prevent text overlap */
-.auth-container button {
-  position: relative !important;
-  overflow: hidden !important;
-}
-
-/* Ensure button text doesn't overlap during state transitions */
-.auth-container button span {
-  position: relative !important;
-}
-
-/* Divider (Or continue with) spacing */
-.auth-container [data-stack-component="divider"],
-.auth-container hr {
-  margin-top: 0.5rem !important;
-  margin-bottom: 0.5rem !important;
-}
-
-/* Form field wrapper spacing */
-.auth-container label {
-  margin-bottom: 0.25rem !important;
-}
-
-/* Form inputs */
-.auth-container input {
-  margin-bottom: 0 !important;
-}
 
 /* 8-bit animated gradient background */
 @keyframes gradient-shift {
